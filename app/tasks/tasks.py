@@ -120,9 +120,38 @@ def run_chain_task(self, chain_execution_id: int):
         execution_order = dag_engine.get_execution_order(nodes, edges)
         
         chain_logs = {"execution_path": []}
+        node_status = {} # To track status of previous nodes: COMPLETED, FAILED, SKIPPED
         
         for node in execution_order:
-            logger.info(f"Executing Chain Node: {node.name} (Technique: {node.technique.mitre_id})")
+            logger.info(f"Evaluating Chain Node: {node.name} (Technique: {node.technique.mitre_id})")
+            
+            # Evaluate incoming conditional edges
+            # A node runs if it has no incoming edges, or if AT LEAST ONE incoming edge condition is met.
+            should_run = True
+            if node.incoming_edges:
+                should_run = False
+                for edge in node.incoming_edges:
+                    src_status = node_status.get(edge.source_node_id, "SKIPPED")
+                    if edge.condition == "ALWAYS" and src_status == "COMPLETED":
+                        should_run = True
+                    elif edge.condition == "ON_SUCCESS" and src_status == "COMPLETED":
+                        should_run = True
+                    elif edge.condition == "ON_FAILURE" and src_status == "FAILED":
+                        should_run = True
+            
+            if not should_run:
+                logger.info(f"Skipping Chain Node: {node.name} due to conditionals.")
+                node_status[node.id] = "SKIPPED"
+                chain_logs["execution_path"].append({
+                    "node_id": node.id,
+                    "technique_id": node.technique_id,
+                    "mitre_id": node.technique.mitre_id,
+                    "execution_status": "SKIPPED",
+                    "detection_status": "SKIPPED"
+                })
+                continue
+                
+            logger.info(f"Executing Chain Node: {node.name}")
             
             # Create a sub-execution for the technique execution (reusing the individual execution table)
             sub_exec = Execution(
@@ -177,13 +206,7 @@ def run_chain_task(self, chain_execution_id: int):
                 "detection_status": is_detected
             })
             
-            if sub_exec.status == "FAILED":
-                # For M1, we fail the whole chain if one step fails. M2 will support conditionals.
-                execution.status = "FAILED"
-                execution.end_time = datetime.utcnow()
-                execution.logs = chain_logs
-                db.commit()
-                return chain_logs
+            node_status[node.id] = sub_exec.status
 
         execution.status = "COMPLETED"
         execution.end_time = datetime.utcnow()
