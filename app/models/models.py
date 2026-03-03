@@ -93,6 +93,7 @@ class ChainEdge(Base):
     id = Column(Integer, primary_key=True, index=True)
     source_node_id = Column(Integer, ForeignKey("chain_nodes.id"), nullable=False)
     target_node_id = Column(Integer, ForeignKey("chain_nodes.id"), nullable=False)
+    condition = Column(String, default="ALWAYS") # ALWAYS, ON_SUCCESS, ON_FAILURE
     
     source_node = relationship("ChainNode", foreign_keys=[source_node_id], back_populates="outgoing_edges")
     target_node = relationship("ChainNode", foreign_keys=[target_node_id], back_populates="incoming_edges")
