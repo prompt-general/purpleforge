@@ -79,3 +79,21 @@ class ValidationResultResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+class ReportBase(BaseModel):
+    name: str
+
+class ReportCreate(ReportBase):
+    pass
+
+class ReportResponse(ReportBase):
+    id: int
+    created_at: datetime
+    total_executions: int
+    successful_detections: int
+    failed_detections: int
+    coverage_percentage: int
+    details: Optional[Dict[str, Any]] = None
+
+    class Config:
+        from_attributes = True
