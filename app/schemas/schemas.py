@@ -260,3 +260,37 @@ class ThreatCampaignResponse(ThreatCampaignBase):
 
     class Config:
         from_attributes = True
+
+
+# Spec 3: Asset and chain generation schemas (M2)
+class AssetBase(BaseModel):
+    name: str
+    asset_type: str
+    environment: Optional[str] = None
+    tags: Optional[Dict[str, Any]] = None
+
+class AssetCreate(AssetBase):
+    pass
+
+class AssetResponse(AssetBase):
+    id: int
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+class ChainGenerationRequest(BaseModel):
+    campaign_id: int
+    environment: Optional[str] = None
+    asset_filter_tags: Optional[Dict[str, Any]] = None
+    chain_name: Optional[str] = None
+
+class GeneratedChainResponse(BaseModel):
+    chain_id: int
+    chain_name: str
+    num_techniques: int
+    num_nodes: int
+    num_edges: int
+
+    class Config:
+        from_attributes = True
