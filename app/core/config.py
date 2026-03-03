@@ -16,6 +16,13 @@ class Settings(BaseSettings):
     # For local dev, might just be the command name
     STRATUS_BINARY_PATH: str = "stratus" 
 
+    # Splunk SIEM Integration
+    SPLUNK_HOST: str = os.getenv("SPLUNK_HOST", "localhost")
+    SPLUNK_PORT: int = int(os.getenv("SPLUNK_PORT", "8089"))
+    SPLUNK_USERNAME: str = os.getenv("SPLUNK_USERNAME", "admin")
+    SPLUNK_PASSWORD: str = os.getenv("SPLUNK_PASSWORD", "changeme")
+    SPLUNK_APP: str = os.getenv("SPLUNK_APP", "search")
+
     class Config:
         env_file = ".env"
 
