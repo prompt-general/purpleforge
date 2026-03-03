@@ -53,3 +53,29 @@ class ExecutionStatusResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+class DetectionRuleBase(BaseModel):
+    technique_id: int
+    name: str
+    spl_query: str
+
+class DetectionRuleCreate(DetectionRuleBase):
+    pass
+
+class DetectionRuleResponse(DetectionRuleBase):
+    id: int
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+class ValidationResultResponse(BaseModel):
+    id: int
+    execution_id: int
+    is_detected: str
+    matched_events_count: int
+    validation_time: datetime
+    logs: Optional[Dict[str, Any]] = None
+
+    class Config:
+        from_attributes = True
