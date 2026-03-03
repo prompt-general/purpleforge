@@ -190,3 +190,25 @@ class CampaignTechnique(Base):
     meta = Column(JSON, nullable=True)
 
     campaign = relationship("ThreatCampaign", back_populates="techniques")
+
+
+class Asset(Base):
+    __tablename__ = "assets"
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False, unique=True)
+    asset_type = Column(String, nullable=False)  # e.g., "ec2-instance", "s3-bucket", "windows-host"
+    environment = Column(String, nullable=True)  # e.g., "prod", "staging", "dev"
+    tags = Column(JSON, nullable=True)  # arbitrary tags for filtering
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    technique_compatibility = relationship("TechniqueAssetMap", back_populates="asset")
+
+
+class TechniqueAssetMap(Base):
+    __tablename__ = "technique_asset_map"
+    id = Column(Integer, primary_key=True, index=True)
+    mitre_id = Column(String, nullable=False, index=True)
+    asset_id = Column(Integer, ForeignKey("assets.id"), nullable=False)
+    compatible = Column(Boolean, default=True)  # whether technique can run on this asset
+
+    asset = relationship("Asset", back_populates="technique_compatibility")
