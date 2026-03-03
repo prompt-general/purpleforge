@@ -322,3 +322,62 @@ class ReportSnapshotResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+# Spec 3: Integration schemas (M4)
+class IntegrationConfig(BaseModel):
+    """Base config - subclasses handle specific integration types."""
+    webhook_url: Optional[str] = None
+    api_key: Optional[str] = None
+    username: Optional[str] = None
+    password: Optional[str] = None
+    # additional fields as a catch-all
+    extra: Optional[Dict[str, Any]] = None
+
+class IntegrationCreate(BaseModel):
+    name: str
+    integration_type: str  # webhook, jira, servicenow, splunk, soar
+    config: Dict[str, Any]
+
+class IntegrationResponse(BaseModel):
+    id: int
+    name: str
+    integration_type: str
+    is_active: bool
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+class IntegrationEventResponse(BaseModel):
+    id: int
+    integration_id: int
+    event_type: str
+    payload: Optional[Dict[str, Any]] = None
+    sent_at: datetime
+    success: bool
+    error_message: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+class TicketCreate(BaseModel):
+    title: str
+    description: Optional[str] = None
+    mitre_id: Optional[str] = None
+    ticket_type: str = "DETECTION_GAP"
+
+class TicketResponse(TicketCreate):
+    id: int
+    integration_id: int
+    external_ticket_id: Optional[str] = None
+    created_at: datetime
+    closed_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
+
+class TriggerIntegrationRequest(BaseModel):
+    event_type: str  # high_risk_detected, detection_gap, snapshot_generated
+    payload: Optional[Dict[str, Any]] = None
+    mitre_ids: Optional[List[str]] = None  # for filtering which techniques trigger
