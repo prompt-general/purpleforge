@@ -35,10 +35,20 @@ def run_technique_task(self, execution_id: int, mitre_technique_id: str):
         # In M2, we'll wait for SIEM ingestion before status update
         stratus_service.warmup(mitre_technique_id)
         results = stratus_service.detonate(mitre_technique_id)
-        stratus_service.cleanup(mitre_technique_id)
-        
+
+        # call cleanup and capture result for verification (Milestone 3)
+        cleanup_results = stratus_service.cleanup(mitre_technique_id)
+        results["cleanup"] = cleanup_results
+
         # 3. Update DB with Results
         execution.status = results.get("status", "COMPLETED")
+        # if cleanup step failed mark overall execution as FAILED so callers know cleanup didn't occur
+        if cleanup_results.get("status") != "CLEANED":
+            execution.status = "FAILED"
+            execution.cleanup_status = "FAILED"
+        else:
+            execution.cleanup_status = "SUCCESS"
+
         execution.end_time = datetime.utcnow()
         execution.logs = results
         db.commit()
@@ -169,12 +179,36 @@ def run_chain_task(self, chain_execution_id: int):
             
             stratus_service.warmup(node.technique.mitre_id)
             results = stratus_service.detonate(node.technique.mitre_id)
-            stratus_service.cleanup(node.technique.mitre_id)
-            
-            sub_exec.status = results.get("status", "COMPLETED")
+            cleanup_results = stratus_service.cleanup(node.technique.mitre_id)
+            results["cleanup"] = cleanup_results
+
+            # record cleanup status on the sub-execution (M3 requirement)
+            if cleanup_results.get("status") != "CLEANED":
+                sub_exec.cleanup_status = "FAILED"
+            else:
+                sub_exec.cleanup_status = "SUCCESS"
+
+            # if cleanup failed, treat the node as failed so subsequent conditionals can react
+            status_after = results.get("status", "COMPLETED")
+            if sub_exec.cleanup_status == "FAILED":
+                status_after = "FAILED"
+
+            sub_exec.status = status_after
             sub_exec.end_time = datetime.utcnow()
             sub_exec.logs = results
             db.commit()
+
+            # if cleanup failed we should abort the chain (cleanup verification blocks completion)
+            if sub_exec.cleanup_status == "FAILED":
+                logger.error(f"Cleanup failed for node {node.name}; aborting chain")
+                node_status[node.id] = "FAILED"
+                chain_logs["cleanup_failure_node"] = node.id
+                # mark the overall chain execution as failed and break out
+                execution.status = "FAILED"
+                execution.logs = chain_logs
+                execution.end_time = datetime.utcnow()
+                db.commit()
+                return chain_logs
             
             # M2 Integration inside Chain
             rule = db.query(DetectionRule).filter(DetectionRule.technique_id == node.technique_id).first()
@@ -203,6 +237,7 @@ def run_chain_task(self, chain_execution_id: int):
                 "technique_id": node.technique_id,
                 "mitre_id": node.technique.mitre_id,
                 "execution_status": sub_exec.status,
+                "cleanup_status": sub_exec.cleanup_status,
                 "detection_status": is_detected
             })
             
