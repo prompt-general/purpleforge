@@ -212,3 +212,30 @@ class TechniqueAssetMap(Base):
     compatible = Column(Boolean, default=True)  # whether technique can run on this asset
 
     asset = relationship("Asset", back_populates="technique_compatibility")
+
+
+class TechniqueRiskScore(Base):
+    __tablename__ = "technique_risk_scores"
+    id = Column(Integer, primary_key=True, index=True)
+    mitre_id = Column(String, nullable=False, unique=True)
+    technique_name = Column(String, nullable=True)
+    likelihood = Column(Float, default=0.0)  # 0.0 - 1.0: frequency in campaigns
+    impact = Column(Float, default=0.5)  # 0.0 - 1.0: criticality impact
+    detection_coverage = Column(Float, default=0.0)  # 0.0 - 1.0: % detections vs executions
+    detection_gap = Column(Float, default=1.0)  # 1.0 - detection_coverage
+    overall_risk = Column(Float, default=0.0)  # likelihood × impact × detection_gap
+    calculated_at = Column(DateTime, default=datetime.utcnow)
+
+
+class ReportSnapshot(Base):
+    __tablename__ = "report_snapshots"
+    id = Column(Integer, primary_key=True, index=True)
+    snapshot_date = Column(DateTime, default=datetime.utcnow)
+    total_techniques = Column(Integer, default=0)
+    avg_risk_score = Column(Float, default=0.0)
+    high_risk_count = Column(Integer, default=0)  # techniques with risk > 0.7
+    detection_gap_avg = Column(Float, default=0.0)
+    details = Column(JSON, nullable=True)  # detailed per-technique scores
+
+    # relationship to track which techniques were included
+    created_at = Column(DateTime, default=datetime.utcnow)
