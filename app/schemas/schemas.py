@@ -129,7 +129,7 @@ class ChainNodeResponse(ChainNodeBase):
 class ChainEdgeBase(BaseModel):
     source_node_id: int
     target_node_id: int
-
+    condition: str = "ALWAYS" # ALWAYS, ON_SUCCESS, ON_FAILURE
 class ChainEdgeCreate(ChainEdgeBase):
     pass
 
