@@ -72,12 +72,38 @@ class StratusWrapper:
             return {"status": "WARM_FAILED", "error": str(e)}
 
     def cleanup(self, technique_id: str) -> Dict[str, Any]:
-        """Cleans up the technique's infra after detonation"""
+        """Cleans up the technique's infra after detonation and returns metadata."""
+        start_time = datetime.utcnow()
         try:
             cmd = [self.binary_path, "cleanup", technique_id]
-            subprocess.run(cmd, check=True)
-            return {"status": "CLEANED"}
+            subprocess.run(cmd, capture_output=True, text=True, check=True)
+            end_time = datetime.utcnow()
+            return {
+                "status": "CLEANED",
+                "start_time": start_time.isoformat(),
+                "end_time": end_time.isoformat(),
+                "duration_seconds": (end_time - start_time).total_seconds()
+            }
+        except subprocess.CalledProcessError as e:
+            end_time = datetime.utcnow()
+            logger.error(f"Stratus cleanup failed: {e.stderr}")
+            return {
+                "status": "CLEANUP_FAILED",
+                "stdout": e.stdout,
+                "stderr": e.stderr,
+                "error": str(e),
+                "start_time": start_time.isoformat(),
+                "end_time": end_time.isoformat(),
+                "duration_seconds": (end_time - start_time).total_seconds()
+            }
         except Exception as e:
-            return {"status": "CLEANUP_FAILED", "error": str(e)}
+            end_time = datetime.utcnow()
+            logger.error(f"Unexpected error in Stratus cleanup wrapper: {str(e)}")
+            return {
+                "status": "CLEANUP_FAILED",
+                "error": str(e),
+                "start_time": start_time.isoformat(),
+                "end_time": end_time.isoformat()
+            }
 
 stratus_service = StratusWrapper()
