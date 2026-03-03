@@ -294,3 +294,31 @@ class GeneratedChainResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+# Spec 3: Risk scoring schemas (M3)
+class TechniqueRiskScoreResponse(BaseModel):
+    mitre_id: str
+    technique_name: Optional[str] = None
+    likelihood: float
+    impact: float
+    detection_coverage: float
+    detection_gap: float
+    overall_risk: float
+    calculated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+class ReportSnapshotResponse(BaseModel):
+    id: int
+    snapshot_date: datetime
+    total_techniques: int
+    avg_risk_score: float
+    high_risk_count: int
+    detection_gap_avg: float
+    details: Optional[Dict[str, Any]] = None
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
