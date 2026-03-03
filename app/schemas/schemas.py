@@ -381,3 +381,24 @@ class TriggerIntegrationRequest(BaseModel):
     event_type: str  # high_risk_detected, detection_gap, snapshot_generated
     payload: Optional[Dict[str, Any]] = None
     mitre_ids: Optional[List[str]] = None  # for filtering which techniques trigger
+
+
+# Spec 3: Executive reporting schemas (M5)
+class ExecutiveOverviewResponse(BaseModel):
+    total_campaigns: int
+    total_assets: int
+    active_integrations: int
+    total_techniques: int
+    avg_risk_score: float
+    high_risk_techniques: int
+    latest_snapshot_date: Optional[datetime]
+
+class ExecutiveReportResponse(BaseModel):
+    overview: ExecutiveOverviewResponse
+    risk_snapshot: Optional[ReportSnapshotResponse] = None
+    integrations: Optional[List[IntegrationResponse]] = None
+    assets: Optional[List[AssetResponse]] = None
+    campaigns: Optional[List[ThreatCampaignResponse]] = None
+
+    class Config:
+        arbitrary_types_allowed = True
