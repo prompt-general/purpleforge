@@ -2,8 +2,8 @@ from typing import Any, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from sqlalchemy.orm import Session
 from app.db.session import get_db
-from app.models.models import Execution, Technique
-from app.schemas.schemas import ExecutionCreate, ExecutionResponse, ExecutionSummaryResponse, ExecutionStatusResponse
+from app.models.models import Execution, Technique, ValidationResult
+from app.schemas.schemas import ExecutionCreate, ExecutionResponse, ExecutionSummaryResponse, ExecutionStatusResponse, ValidationResultResponse
 from app.tasks.tasks import run_technique_task
 
 router = APIRouter()
@@ -76,3 +76,19 @@ def get_execution_status(
     if not execution:
         raise HTTPException(status_code=404, detail="Execution not found")
     return execution
+
+@router.get("/{id}/validation", response_model=List[ValidationResultResponse])
+def get_execution_validation(
+    *,
+    db: Session = Depends(get_db),
+    id: int
+) -> Any:
+    """
+    Get the SIEM validation results for a specific execution.
+    """
+    execution = db.query(Execution).filter(Execution.id == id).first()
+    if not execution:
+        raise HTTPException(status_code=404, detail="Execution not found")
+        
+    validations = db.query(ValidationResult).filter(ValidationResult.execution_id == id).all()
+    return validations
