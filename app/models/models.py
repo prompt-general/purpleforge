@@ -239,3 +239,44 @@ class ReportSnapshot(Base):
 
     # relationship to track which techniques were included
     created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class Integration(Base):
+    __tablename__ = "integrations"
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False, unique=True)
+    integration_type = Column(String, nullable=False)  # "webhook", "jira", "servicenow", "splunk", "soar"
+    config = Column(JSON, nullable=False)  # url, credentials, etc.
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    events = relationship("IntegrationEvent", back_populates="integration")
+    tickets = relationship("Ticket", back_populates="integration")
+
+
+class IntegrationEvent(Base):
+    __tablename__ = "integration_events"
+    id = Column(Integer, primary_key=True, index=True)
+    integration_id = Column(Integer, ForeignKey("integrations.id"), nullable=False)
+    event_type = Column(String, nullable=False)  # "high_risk_detected", "detection_gap", "snapshot_generated"
+    payload = Column(JSON, nullable=True)
+    sent_at = Column(DateTime, default=datetime.utcnow)
+    success = Column(Boolean, default=False)
+    error_message = Column(String, nullable=True)
+    
+    integration = relationship("Integration", back_populates="events")
+
+
+class Ticket(Base):
+    __tablename__ = "tickets"
+    id = Column(Integer, primary_key=True, index=True)
+    integration_id = Column(Integer, ForeignKey("integrations.id"), nullable=False)
+    external_ticket_id = Column(String, nullable=True)  # ticket ID in external system (e.g., JIRA-123)
+    mitre_id = Column(String, nullable=True)
+    title = Column(String, nullable=False)
+    description = Column(String, nullable=True)
+    ticket_type = Column(String, default="DETECTION_GAP")  # DETECTION_GAP, HIGH_RISK, etc.
+    created_at = Column(DateTime, default=datetime.utcnow)
+    closed_at = Column(DateTime, nullable=True)
+    
+    integration = relationship("Integration", back_populates="tickets")
