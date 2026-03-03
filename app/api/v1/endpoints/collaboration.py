@@ -1,5 +1,5 @@
 from typing import Any, List
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Header
 from sqlalchemy.orm import Session
 from datetime import datetime
 
@@ -35,9 +35,27 @@ def list_tenants(db: Session = Depends(get_db)) -> Any:
     return db.query(Tenant).all()
 
 # --- user endpoints (admin only) ---
-@router.post("/users", response_model=UserResponse, status_code=201,
-             dependencies=[Depends(require_role("Admin"))])
-def create_user(*, db: Session = Depends(get_db), user_in: UserCreate) -> Any:
+@router.post("/users", response_model=UserResponse, status_code=201)
+def create_user(
+    *,
+    db: Session = Depends(get_db),
+    user_in: UserCreate,
+    x_user_id: int | None = Header(None, alias="X-User-Id")
+) -> Any:
+    # allow bootstrap of first user without authentication
+    total_users = db.query(User).count()
+    if total_users > 0:
+        # existing install, enforce admin privileges
+        if x_user_id is None:
+            raise HTTPException(status_code=401, detail="Missing X-User-Id header")
+        current = db.query(User).filter(User.id == x_user_id).first()
+        if not current or current.role != "Admin":
+            raise HTTPException(status_code=403, detail="Admin role required to create users")
+    else:
+        # first signup: user must be admin
+        if user_in.role != "Admin":
+            raise HTTPException(status_code=400, detail="first user must have Admin role")
+
     # ensure tenant exists if provided
     if user_in.tenant_id:
         tenant = db.query(Tenant).filter(Tenant.id == user_in.tenant_id).first()
