@@ -65,3 +65,45 @@ class Report(Base):
     failed_detections = Column(Integer, default=0)
     coverage_percentage = Column(Integer, default=0)
     details = Column(JSON, nullable=True) # Detailed list of techniques and their status
+
+# Spec 2: Milestone 1 - DAG Attack Chains
+class AttackChain(Base):
+    __tablename__ = "attack_chains"
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, index=True, nullable=False)
+    description = Column(String)
+    nodes = relationship("ChainNode", back_populates="chain")
+    executions = relationship("ChainExecution", back_populates="chain")
+
+class ChainNode(Base):
+    __tablename__ = "chain_nodes"
+    id = Column(Integer, primary_key=True, index=True)
+    chain_id = Column(Integer, ForeignKey("attack_chains.id"), nullable=False)
+    technique_id = Column(Integer, ForeignKey("techniques.id"), nullable=False)
+    name = Column(String, nullable=False)
+    
+    chain = relationship("AttackChain", back_populates="nodes")
+    technique = relationship("Technique")
+    
+    outgoing_edges = relationship("ChainEdge", foreign_keys="[ChainEdge.source_node_id]", back_populates="source_node")
+    incoming_edges = relationship("ChainEdge", foreign_keys="[ChainEdge.target_node_id]", back_populates="target_node")
+
+class ChainEdge(Base):
+    __tablename__ = "chain_edges"
+    id = Column(Integer, primary_key=True, index=True)
+    source_node_id = Column(Integer, ForeignKey("chain_nodes.id"), nullable=False)
+    target_node_id = Column(Integer, ForeignKey("chain_nodes.id"), nullable=False)
+    
+    source_node = relationship("ChainNode", foreign_keys=[source_node_id], back_populates="outgoing_edges")
+    target_node = relationship("ChainNode", foreign_keys=[target_node_id], back_populates="incoming_edges")
+
+class ChainExecution(Base):
+    __tablename__ = "chain_executions"
+    id = Column(Integer, primary_key=True, index=True)
+    chain_id = Column(Integer, ForeignKey("attack_chains.id"), nullable=False)
+    start_time = Column(DateTime, default=datetime.utcnow)
+    end_time = Column(DateTime, nullable=True)
+    status = Column(String, default="PENDING") # PENDING, RUNNING, COMPLETED, FAILED
+    logs = Column(JSON, nullable=True) # Execution metadata/DAG execution path
+    
+    chain = relationship("AttackChain", back_populates="executions")
