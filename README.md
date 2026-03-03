@@ -17,17 +17,12 @@ Detection validation layer for attack technique execution.
    pip install -r requirements.txt
    ```
 
-2. **Run infrastructure & application**:
+2. **Run infrastructure & application (Automatically initializes DB)**:
    ```bash
    docker-compose up -d --build
    ```
 
-3. **Initialize database** (if needed):
-   ```bash
-   docker-compose exec api python -m app.db.init_db
-   ```
-
-4. **Access the API**:
+3. **Access the API**:
    - Web API: `http://localhost:8000`
    - Interactive Docs (Swagger): `http://localhost:8000/docs`
 
