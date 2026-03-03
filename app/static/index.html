@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PurpleForge - Detection Validator</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <div class="logo">
+                <div class="logo-icon">PF</div>
+                <h2>PurpleForge</h2>
+            </div>
+            <ul class="nav-links">
+                <li class="active" onclick="switchTab('dashboard')">
+                    <span class="icon">📊</span>
+                    <span>Dashboard</span>
+                </li>
+                <li onclick="switchTab('techniques')">
+                    <span class="icon">⚔️</span>
+                    <span>Techniques</span>
+                </li>
+                <li onclick="switchTab('executions')">
+                    <span class="icon">⚡</span>
+                    <span>Executions</span>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header>
+                <div>
+                    <h1>Overview</h1>
+                    <p class="subtitle">Detection validation layer and simulation metrics.</p>
+                </div>
+                <button class="btn-primary" onclick="generateReport()">
+                    <span class="icon">📈</span> Generate Report Snapshot
+                </button>
+            </header>
+
+            <!-- Dashboard Stats -->
+            <section class="stats-grid">
+                <div class="stat-card glass">
+                    <div class="stat-icon purple">🎯</div>
+                    <div class="stat-info">
+                        <h3>Detection Coverage</h3>
+                        <h2 id="overall-coverage">--%</h2>
+                        <p>Based on latest report</p>
+                    </div>
+                </div>
+                <div class="stat-card glass">
+                    <div class="stat-icon blue">⚡</div>
+                    <div class="stat-info">
+                        <h3>Total Executions</h3>
+                        <h2 id="total-executions">0</h2>
+                        <p>Simulations detonated</p>
+                    </div>
+                </div>
+                <div class="stat-card glass">
+                    <div class="stat-icon green">✅</div>
+                    <div class="stat-info">
+                        <h3>Successful Detections</h3>
+                        <h2 id="success-detections">0</h2>
+                        <p>SIEM validated true positives</p>
+                    </div>
+                </div>
+                <div class="stat-card glass">
+                    <div class="stat-icon red">❌</div>
+                    <div class="stat-info">
+                        <h3>Missed Detections</h3>
+                        <h2 id="missed-detections">0</h2>
+                        <p>SIEM validated false negatives</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Charts & Tables -->
+            <section class="content-row">
+                <div class="chart-container glass">
+                    <div class="section-header">
+                        <h2>Coverage Trend</h2>
+                        <p>Historical progression of detection coverage</p>
+                    </div>
+                    <canvas id="coverageChart"></canvas>
+                </div>
+
+                <div class="table-container glass">
+                    <div class="section-header">
+                        <h2>Recent Executions</h2>
+                        <p>Live feed of latest technique detonations</p>
+                    </div>
+                    <div class="table-wrapper">
+                        <table id="executionsTable">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Technique ID</th>
+                                    <th>Status</th>
+                                    <th>Time</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- JS Injected Rows -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Techniques Tab (Hidden by default) -->
+            <section id="techniques-view" class="glass hidden">
+                <div class="section-header">
+                    <h2>Available Techniques</h2>
+                    <p>Techniques mapped to SIEM rules</p>
+                </div>
+                <div class="table-wrapper">
+                    <table id="techniquesTable">
+                        <thead>
+                            <tr>
+                                <th>MITRE ID</th>
+                                <th>Name</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- JS Injected -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="toast hidden">
+        <span class="icon">🔔</span>
+        <span id="toast-message">Notification</span>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
