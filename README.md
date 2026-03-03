@@ -143,9 +143,9 @@ curl "http://localhost:8000/api/v1/executive/report"
 
 ## 📊 Dashboard Screenshots
 
-![Dashboard Overview](https://user-images.githubusercontent.com/placeholder/dashboard.png)
+![Dashboard Overview](app/static/dashboard.png)
 
-![Executive Tab](https://user-images.githubusercontent.com/placeholder/executive.png)
+![Executive Tab](app/static/executive.png)
 
 ---
 
