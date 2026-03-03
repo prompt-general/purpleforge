@@ -10,6 +10,50 @@ Detection validation layer for attack technique execution.
 - [x] FastAPI REST API (v1)
 - [x] Dockerized Deployment
 
+## Milestone 2: Chains & Cleanup
+
+- [x] DAG-based attack chain execution
+- [x] Conditional branching logic
+- [x] Cleanup verification and failure aborts
+
+## Milestone 3: Cleanup Verification (Completed)
+
+- [x] Store cleanup status per execution
+- [x] Block chain completion when cleanup fails
+
+## Milestone 4: Collaboration & RBAC
+
+- [x] Multi-tenant exercise management
+- [x] Comments, audit logs, role-based access control
+
+## Spec 3 – Enterprise Platform
+
+### M1: Campaign Ingestion
+- [x] STIX-like campaign importer
+
+### M2: Auto-chain Generation
+- [x] Environment/asset-aware filtering
+- [x] Linear DAG builder
+
+### M3: Risk Scoring Engine
+- [x] Risk = Likelihood × Impact × Detection Gap
+- [x] Snapshot reporting
+
+### M4: Stack Integrations
+- [x] Webhook, Jira, ServiceNow, SOAR, Splunk connectors
+- [x] Event broadcasting & ticket creation
+
+### M5: Executive Reporting (Completed)
+- [x] Overview metrics & full executive report API
+- [x] Frontend dashboard tab
+
+The platform now supports end-to-end adversary simulation, risk intelligence, and enterprise integrations.
+
+## Next Steps
+- Continuous scheduling and trend analytics
+- Hardening: sandbox isolation, ephemeral credentials
+- Expand executive UI or add export features
+
 ## Quick Start (with Docker)
 
 1. **Install requirements** (if running locally):
