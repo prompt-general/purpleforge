@@ -2,13 +2,15 @@ from typing import Any, List
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.db.session import get_db
-from app.models.models import ThreatCampaign, Asset
+from app.models.models import ThreatCampaign, Asset, TechniqueRiskScore, ReportSnapshot
 from app.services.intel import intel_service
 from app.services.chain_generation import chain_generation_service
+from app.services.risk_engine import risk_engine
 from app.schemas.schemas import (
     ThreatCampaignCreate, ThreatCampaignResponse,
     AssetCreate, AssetResponse,
-    ChainGenerationRequest, GeneratedChainResponse
+    ChainGenerationRequest, GeneratedChainResponse,
+    TechniqueRiskScoreResponse, ReportSnapshotResponse
 )
 
 router = APIRouter()
@@ -97,3 +99,59 @@ def generate_chain_from_campaign(
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+# --- Risk scoring endpoints (M3) ---
+@router.post("/risk/calculate-all", response_model=List[TechniqueRiskScoreResponse], status_code=201)
+def calculate_all_risks(
+    impact: float = 0.5,
+    db: Session = Depends(get_db)
+) -> Any:
+    """Calculate or update risk scores for all known techniques."""
+    scores = risk_engine.bulk_calculate_all_techniques(db, impact=impact)
+    return scores
+
+@router.get("/risk/scores", response_model=List[TechniqueRiskScoreResponse])
+def list_risk_scores(
+    min_risk: float = None,
+    db: Session = Depends(get_db)
+) -> Any:
+    """List all technique risk scores, optionally filtered by minimum risk."""
+    query = db.query(TechniqueRiskScore)
+    if min_risk is not None:
+        query = query.filter(TechniqueRiskScore.overall_risk >= min_risk)
+    return query.order_by(TechniqueRiskScore.overall_risk.desc()).all()
+
+@router.get("/risk/scores/{mitre_id}", response_model=TechniqueRiskScoreResponse)
+def get_risk_score(
+    mitre_id: str,
+    db: Session = Depends(get_db)
+) -> Any:
+    """Get risk score for a specific technique."""
+    score = db.query(TechniqueRiskScore).filter(
+        TechniqueRiskScore.mitre_id == mitre_id
+    ).first()
+    if not score:
+        raise HTTPException(status_code=404, detail="Risk score not found")
+    return score
+
+@router.post("/risk/snapshot", response_model=ReportSnapshotResponse, status_code=201)
+def generate_risk_snapshot(db: Session = Depends(get_db)) -> Any:
+    """Generate a risk report snapshot at this moment in time."""
+    snapshot = risk_engine.generate_risk_snapshot(db)
+    return snapshot
+
+@router.get("/risk/snapshots", response_model=List[ReportSnapshotResponse])
+def list_snapshots(db: Session = Depends(get_db)) -> Any:
+    """List historical risk snapshots."""
+    snapshots = db.query(ReportSnapshot).order_by(
+        ReportSnapshot.snapshot_date.desc()
+    ).all()
+    return snapshots
+
+@router.get("/risk/snapshots/{snapshot_id}", response_model=ReportSnapshotResponse)
+def get_snapshot(snapshot_id: int, db: Session = Depends(get_db)) -> Any:
+    """Get a specific risk snapshot by ID."""
+    snapshot = db.query(ReportSnapshot).filter(ReportSnapshot.id == snapshot_id).first()
+    if not snapshot:
+        raise HTTPException(status_code=404, detail="Snapshot not found")
+    return snapshot
