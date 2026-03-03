@@ -97,3 +97,58 @@ class ReportResponse(ReportBase):
 
     class Config:
         from_attributes = True
+
+# Spec 2: Milestone 1 - DAG Attack Chains
+class AttackChainBase(BaseModel):
+    name: str
+    description: Optional[str] = None
+
+class AttackChainCreate(AttackChainBase):
+    pass
+
+class AttackChainResponse(AttackChainBase):
+    id: int
+
+    class Config:
+        from_attributes = True
+
+class ChainNodeBase(BaseModel):
+    chain_id: int
+    technique_id: int
+    name: str
+
+class ChainNodeCreate(ChainNodeBase):
+    pass
+
+class ChainNodeResponse(ChainNodeBase):
+    id: int
+
+    class Config:
+        from_attributes = True
+
+class ChainEdgeBase(BaseModel):
+    source_node_id: int
+    target_node_id: int
+
+class ChainEdgeCreate(ChainEdgeBase):
+    pass
+
+class ChainEdgeResponse(ChainEdgeBase):
+    id: int
+
+    class Config:
+        from_attributes = True
+
+class ChainExecutionCreate(BaseModel):
+    chain_id: int
+
+class ChainExecutionResponse(BaseModel):
+    id: int
+    chain_id: int
+    start_time: Optional[datetime]
+    end_time: Optional[datetime]
+    status: str
+    logs: Optional[Dict[str, Any]] = None
+
+    class Config:
+        from_attributes = True
