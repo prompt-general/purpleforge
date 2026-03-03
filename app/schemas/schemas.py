@@ -228,3 +228,35 @@ class AuditLogResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+# Spec 3: Threat Intel schemas (M1)
+class CampaignTechniqueBase(BaseModel):
+    mitre_id: str
+    name: Optional[str] = None
+    meta: Optional[Dict[str, Any]] = None
+
+class CampaignTechniqueCreate(CampaignTechniqueBase):
+    pass
+
+class CampaignTechniqueResponse(CampaignTechniqueBase):
+    id: int
+    campaign_id: int
+    class Config:
+        from_attributes = True
+
+class ThreatCampaignBase(BaseModel):
+    name: str
+    description: Optional[str] = None
+    external_id: Optional[str] = None
+
+class ThreatCampaignCreate(ThreatCampaignBase):
+    techniques: Optional[List[CampaignTechniqueCreate]] = None
+
+class ThreatCampaignResponse(ThreatCampaignBase):
+    id: int
+    created_at: datetime
+    techniques: Optional[List[CampaignTechniqueResponse]] = None
+
+    class Config:
+        from_attributes = True
