@@ -54,3 +54,14 @@ class ValidationResult(Base):
     execution = relationship("Execution", back_populates="validation_results")
 
 # Future models: Report
+
+class Report(Base):
+    __tablename__ = "reports"
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    total_executions = Column(Integer, default=0)
+    successful_detections = Column(Integer, default=0)
+    failed_detections = Column(Integer, default=0)
+    coverage_percentage = Column(Integer, default=0)
+    details = Column(JSON, nullable=True) # Detailed list of techniques and their status
