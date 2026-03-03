@@ -167,3 +167,26 @@ class AuditLog(Base):
     timestamp = Column(DateTime, default=datetime.utcnow)
 
     user = relationship("User", back_populates="audit_logs")
+
+
+# Spec 3: Threat Intel (M1 - Campaign ingestion)
+class ThreatCampaign(Base):
+    __tablename__ = "threat_campaigns"
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False, unique=True)
+    description = Column(String, nullable=True)
+    external_id = Column(String, nullable=True)  # e.g., STIX campaign id
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    techniques = relationship("CampaignTechnique", back_populates="campaign")
+
+
+class CampaignTechnique(Base):
+    __tablename__ = "campaign_techniques"
+    id = Column(Integer, primary_key=True, index=True)
+    campaign_id = Column(Integer, ForeignKey("threat_campaigns.id"), nullable=False)
+    mitre_id = Column(String, nullable=False, index=True)
+    name = Column(String, nullable=True)
+    meta = Column(JSON, nullable=True)
+
+    campaign = relationship("ThreatCampaign", back_populates="techniques")
