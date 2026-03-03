@@ -24,6 +24,7 @@ class Execution(Base):
     start_time = Column(DateTime, default=datetime.utcnow)
     end_time = Column(DateTime, nullable=True)
     status = Column(String, default="PENDING") # PENDING, RUNNING, COMPLETED, FAILED
+    cleanup_status = Column(String, default="PENDING") # PENDING, SUCCESS, FAILED
     logs = Column(JSON, nullable=True) # Execution metadata and output
     
     # Relationship to technique

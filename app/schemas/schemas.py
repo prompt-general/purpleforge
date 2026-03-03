@@ -30,6 +30,7 @@ class ExecutionResponse(BaseModel):
     start_time: Optional[datetime]
     end_time: Optional[datetime]
     status: str
+    cleanup_status: str
     logs: Optional[Dict[str, Any]] = None
 
     class Config:
@@ -40,6 +41,7 @@ class ExecutionSummaryResponse(BaseModel):
     id: int
     technique_id: int
     status: str
+    cleanup_status: str
     start_time: datetime
     
     class Config:
