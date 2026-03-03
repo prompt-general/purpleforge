@@ -2,8 +2,10 @@ import logging
 from datetime import datetime
 from app.core.celery_app import celery_app
 from app.services.stratus import stratus_service
+from app.services.splunk import splunk_service
 from app.db.session import SessionLocal
-from app.models.models import Execution
+from app.models.models import Execution, DetectionRule, ValidationResult
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -39,6 +41,37 @@ def run_technique_task(self, execution_id: int, mitre_technique_id: str):
         execution.end_time = datetime.utcnow()
         execution.logs = results
         db.commit()
+        
+        # 4. Milestone 2: Splunk Validation
+        # Get mapping rule
+        rule = db.query(DetectionRule).filter(DetectionRule.technique_id == execution.technique_id).first()
+        
+        if rule:
+            logger.info(f"Rule found for technique {mitre_technique_id}. Waiting for logs to ingest...")
+            # Simple sleep for M2 (in prod, use task chaining with delays)
+            time.sleep(10)
+            
+            search_results = splunk_service.search(
+                spl_query=rule.spl_query,
+                start_time=execution.start_time,
+                end_time=execution.end_time or datetime.utcnow()
+            )
+            
+            is_detected = "TRUE" if search_results.get("count", 0) > 0 else "FALSE"
+            if search_results.get("status") == "ERROR":
+                is_detected = "ERROR"
+            
+            validation = ValidationResult(
+                execution_id=execution.id,
+                is_detected=is_detected,
+                matched_events_count=search_results.get("count", 0),
+                logs=search_results
+            )
+            db.add(validation)
+            db.commit()
+            logger.info(f"Validation complete for {execution_id}: {is_detected}")
+        else:
+            logger.info(f"No detection rule mapped for technique {mitre_technique_id}.")
         
         logger.info(f"Successfully completed execution {execution_id}")
         return results
