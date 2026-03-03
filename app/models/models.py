@@ -109,3 +109,61 @@ class ChainExecution(Base):
     logs = Column(JSON, nullable=True) # Execution metadata/DAG execution path
     
     chain = relationship("AttackChain", back_populates="executions")
+
+# Spec 2: Milestone 4 - Exercise collaboration
+class Tenant(Base):
+    __tablename__ = "tenants"
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, unique=True, nullable=False)
+
+    users = relationship("User", back_populates="tenant")
+    exercises = relationship("Exercise", back_populates="tenant")
+
+class User(Base):
+    __tablename__ = "users"
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, unique=True, nullable=False)
+    role = Column(String, nullable=False)  # Admin, Operator, Viewer
+    tenant_id = Column(Integer, ForeignKey("tenants.id"), nullable=True)
+
+    tenant = relationship("Tenant", back_populates="users")
+    comments = relationship("ExerciseComment", back_populates="user")
+    audit_logs = relationship("AuditLog", back_populates="user")
+    exercises_created = relationship("Exercise", back_populates="created_by")
+
+class Exercise(Base):
+    __tablename__ = "exercises"
+    id = Column(Integer, primary_key=True, index=True)
+    tenant_id = Column(Integer, ForeignKey("tenants.id"), nullable=False)
+    name = Column(String, nullable=False)
+    description = Column(String, nullable=True)
+    status = Column(String, default="PENDING")
+    created_by_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    start_time = Column(DateTime, nullable=True)
+    end_time = Column(DateTime, nullable=True)
+
+    tenant = relationship("Tenant", back_populates="exercises")
+    created_by = relationship("User", back_populates="exercises_created")
+    comments = relationship("ExerciseComment", back_populates="exercise")
+
+class ExerciseComment(Base):
+    __tablename__ = "exercise_comments"
+    id = Column(Integer, primary_key=True, index=True)
+    exercise_id = Column(Integer, ForeignKey("exercises.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    comment = Column(String, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    exercise = relationship("Exercise", back_populates="comments")
+    user = relationship("User", back_populates="comments")
+
+class AuditLog(Base):
+    __tablename__ = "audit_logs"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    action = Column(String, nullable=False)
+    target_type = Column(String, nullable=True)
+    target_id = Column(Integer, nullable=True)
+    timestamp = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User", back_populates="audit_logs")
