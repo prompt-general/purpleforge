@@ -20,18 +20,38 @@ function switchTab(tabId) {
     // Hide all sections except overview cards (which stay fixed)
     const row = document.querySelector('.content-row');
     const techniquesView = document.getElementById('techniques-view');
+    const executiveView = document.getElementById('executive-view');
     
+    // hide optional sections
+    techniquesView.classList.add('hidden');
+    executiveView && executiveView.classList.add('hidden');
+
     if(tabId === 'dashboard') {
         row.classList.remove('hidden');
-        techniquesView.classList.add('hidden');
         loadDashboardMetrics();
     } else if (tabId === 'techniques') {
         row.classList.add('hidden');
         techniquesView.classList.remove('hidden');
     } else if (tabId === 'executions') {
-        // Just highlight dashboard view for now
         row.classList.remove('hidden');
-        techniquesView.classList.add('hidden');
+    } else if (tabId === 'executive') {
+        row.classList.add('hidden');
+        if(executiveView) executiveView.classList.remove('hidden');
+        loadExecutiveOverview();
+    }
+}
+
+// executive overview loader
+async function loadExecutiveOverview() {
+    try {
+        const res = await fetch(`${API_BASE}/executive/overview`);
+        const data = await res.json();
+        document.getElementById('exec-total-campaigns').innerText = data.total_campaigns;
+        document.getElementById('exec-total-assets').innerText = data.total_assets;
+        document.getElementById('exec-active-integrations').innerText = data.active_integrations;
+        document.getElementById('exec-high-risk').innerText = data.high_risk_techniques;
+    } catch (e) {
+        console.error('Failed to load executive overview', e);
     }
 }
 

@@ -33,6 +33,10 @@
                     <span class="icon">⚡</span>
                     <span>Executions</span>
                 </li>
+                <li onclick="switchTab('executive')">
+                    <span class="icon">🏛️</span>
+                    <span>Executive</span>
+                </li>
             </ul>
         </nav>
 
@@ -117,6 +121,45 @@
                 </div>
             </section>
             
+            <!-- Executive Tab (Hidden by default) -->
+            <section id="executive-view" class="glass hidden">
+                <div class="section-header">
+                    <h2>Executive Metrics</h2>
+                    <p>High-level risk, campaigns, assets, and integrations</p>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-card glass">
+                        <div class="stat-icon purple">🏁</div>
+                        <div class="stat-info">
+                            <h3>Total Campaigns</h3>
+                            <h2 id="exec-total-campaigns">0</h2>
+                        </div>
+                    </div>
+                    <div class="stat-card glass">
+                        <div class="stat-icon green">💼</div>
+                        <div class="stat-info">
+                            <h3>Total Assets</h3>
+                            <h2 id="exec-total-assets">0</h2>
+                        </div>
+                    </div>
+                    <div class="stat-card glass">
+                        <div class="stat-icon blue">🔗</div>
+                        <div class="stat-info">
+                            <h3>Active Integrations</h3>
+                            <h2 id="exec-active-integrations">0</h2>
+                        </div>
+                    </div>
+                    <div class="stat-card glass">
+                        <div class="stat-icon red">⚠️</div>
+                        <div class="stat-info">
+                            <h3>High Risk Techniques</h3>
+                            <h2 id="exec-high-risk">0</h2>
+                        </div>
+                    </div>
+                </div>
+                <!-- more executive content could go here -->
+            </section>
+
             <!-- Techniques Tab (Hidden by default) -->
             <section id="techniques-view" class="glass hidden">
                 <div class="section-header">
