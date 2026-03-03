@@ -154,3 +154,77 @@ class ChainExecutionResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+# Spec 2: Milestone 4 - Collaboration schemas
+class TenantBase(BaseModel):
+    name: str
+
+class TenantCreate(TenantBase):
+    pass
+
+class TenantResponse(TenantBase):
+    id: int
+    class Config:
+        from_attributes = True
+
+class UserBase(BaseModel):
+    username: str
+    role: str
+    tenant_id: Optional[int] = None
+
+class UserCreate(UserBase):
+    pass
+
+class UserResponse(UserBase):
+    id: int
+    class Config:
+        from_attributes = True
+
+class ExerciseBase(BaseModel):
+    name: str
+    description: Optional[str] = None
+
+class ExerciseCreate(ExerciseBase):
+    pass
+
+class ExerciseResponse(ExerciseBase):
+    id: int
+    tenant_id: int
+    status: str
+    created_by_id: int
+    start_time: Optional[datetime]
+    end_time: Optional[datetime]
+
+    class Config:
+        from_attributes = True
+
+class ExerciseUpdate(BaseModel):
+    status: Optional[str] = None
+    start_time: Optional[datetime] = None
+    end_time: Optional[datetime] = None
+
+class ExerciseCommentBase(BaseModel):
+    exercise_id: int
+    comment: str
+
+class ExerciseCommentCreate(ExerciseCommentBase):
+    pass
+
+class ExerciseCommentResponse(ExerciseCommentBase):
+    id: int
+    user_id: int
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+class AuditLogResponse(BaseModel):
+    id: int
+    user_id: int
+    action: str
+    target_type: Optional[str] = None
+    target_id: Optional[int] = None
+    timestamp: datetime
+
+    class Config:
+        from_attributes = True
